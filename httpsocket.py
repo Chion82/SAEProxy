@@ -5,6 +5,7 @@ import random
 import socket
 import base64
 import threading
+from sae import channel
 
 hosts = {}
 ports = {}
@@ -16,7 +17,7 @@ app.debug = True
 @app.route('/connect')
 def connect():
 	channelName = str(int(time.time())) + str(random.randint(100000,999999))
-	url = sae.channel.create_channel(channelName)
+	url = channel.create_channel(channelName)
 	host = request.args.get('host','')
 	port = request.args.get('port','')
 	if (url!='' and url!=None and host!='' and host!=None and port!='' and port!=None):
@@ -30,7 +31,7 @@ def sock_loop_recv(sock, channelName):
 	try:
 		while (channelName in hosts):
 			data = sock.recv(1024)
-			sae.channel.send_message(channelName, base64.b64encode(data))
+			channel.send_message(channelName, base64.b64encode(data))
 		sock.close()
 	except exception, e:
 		print(e)
@@ -55,7 +56,7 @@ def on_connect():
 		threading.Thread(target=sock_loop_recv,args=(s,channelName)).start()
 		threading.Thread(target=sock_loop_send,args=(s,channelName)).start()
 		return jsonify({'status':'OK'})
-	except exception, e
+	except exception, e:
 		return jsonify({'status':'error','message':e})
 
 @app.route('/_sae/channel/disconnected')
